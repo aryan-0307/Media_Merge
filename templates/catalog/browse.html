@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Browse - MediaMerge{% endblock %}
+{% block content %}
+<section class="browse-section section-padding">
+    <div class="container">
+        
+        <div class="browse-header">
+            <h1 class="browse-title">Explore Media</h1>
+            <p class="browse-subtitle">Browse the complete MediaMerge catalog.</p>
+        </div>
+
+        <!-- Search & Filter -->
+        <div class="browse-controls">
+            <form method="get" class="browse-form">
+                <input type="text" name="q" value="{{ query }}" placeholder="Search titles..." class="browse-search-input" aria-label="Search titles">
+                <select name="category" class="browse-select" aria-label="Select Category">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.slug }}" {% if current_category == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn-browse-submit">Filter</button>
+            </form>
+        </div>
+
+        <!-- Media Grid -->
+        <div class="browse-grid">
+            {% for media in media_list %}
+                <a href="{% url 'catalog:media_detail' media.pk %}" class="media-card-link">
+                    <article class="media-card">
+                        <div class="media-card-image">
+                            {% if media.thumbnail %}
+                                <img src="{{ media.thumbnail.url }}" alt="{{ media.title }}">
+                            {% else %}
+                                <div class="media-card-fallback">
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                    </svg>
+                                </div>
+                            {% endif %}
+                            
+                            {% if media.is_premium %}
+                                <span class="badge-premium">Premium</span>
+                            {% endif %}
+                        </div>
+                        <div class="media-card-content">
+                            <h3 class="media-card-title">{{ media.title }}</h3>
+                            <p class="media-card-meta">
+                                {{ media.get_media_type_display }} &bull; {{ media.category.name|default:"Uncategorized" }}
+                            </p>
+                        </div>
+                    </article>
+                </a>
+            {% empty %}
+                <div class="browse-empty">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1rem; color: var(--text-secondary); opacity: 0.5;">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <h3>No Media Found</h3>
+                    <p>Try adjusting your search or category filters.</p>
+                </div>
+            {% endfor %}
+        </div>
+        
+    </div>
+</section>
+{% endblock %}

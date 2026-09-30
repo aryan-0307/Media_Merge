@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MediaMerge{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Base CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/base.css' %}?v=2.0">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="{% if request.resolver_match.url_name == 'home' and request.resolver_match.namespace == 'catalog' %}home-page{% endif %}">
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">MediaMerge<span>.</span></a>
+        <ul class="navbar-nav">
+            <li><a href="{% url 'catalog:home' %}" class="nav-link">Home</a></li>
+            <li><a href="{% url 'catalog:browse' %}" class="nav-link">Browse</a></li>
+            {% if not user.is_authenticated or user.role != 'CREATOR' %}
+            <li><a href="{% url 'subscriptions:plans' %}" class="nav-link">Plans</a></li>
+            {% endif %}
+        </ul>
+        <div class="navbar-actions" style="display:flex; gap: 1.5rem; align-items:center;">
+            {% if user.is_authenticated %}
+                {% if user.is_superuser or user.role == 'ADMIN' %}
+                    <a href="{% url 'analytics:admin_dashboard' %}" class="nav-link">Admin</a>
+                {% endif %}
+                
+                {% if user.role == 'CREATOR' or user.is_staff %}
+                    <a href="{% url 'catalog:creator_dashboard' %}" class="nav-link">Creator Studio</a>
+                {% endif %}
+                
+                <form method="post" action="{% url 'accounts:logout' %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link" style="border:none; background:none; cursor:pointer; font-size:1rem; padding:0;">Logout</button>
+                </form>
+                
+                <a href="{% url 'accounts:profile' %}" class="btn-editorial-nav">Dashboard</a>
+            {% else %}
+                <a href="{% url 'accounts:login' %}" class="nav-link">Sign In</a>
+                <a href="{% url 'accounts:register' %}" class="btn-editorial-nav">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="editorial-footer">
+        <div class="container">
+            <div class="footer-top">
+                <div class="footer-brand-section">
+                    <a href="/" class="footer-brand">MediaMerge<span>.</span></a>
+                    <h2 class="footer-slogan">Let's make something <span class="text-terracotta">dope.</span></h2>
+                </div>
+                <div class="footer-nav-section">
+                    <ul class="footer-links">
+                        <li><a href="{% url 'catalog:home' %}">Home</a></li>
+                        <li><a href="{% url 'catalog:browse' %}">Browse</a></li>
+                        {% if not user.is_authenticated or user.role != 'CREATOR' %}
+                        <li><a href="{% url 'subscriptions:plans' %}">Plans</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-divider"></div>
+            <div class="footer-bottom">
+                <p>&copy; {% now "Y" %} MediaMerge. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Base JS -->
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

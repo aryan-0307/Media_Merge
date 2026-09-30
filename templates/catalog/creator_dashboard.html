@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% block title %}Creator Dashboard - MediaMerge{% endblock %}
+{% block content %}
+<section class="section-padding">
+    <div class="container">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 class="dashboard-title">Creator Dashboard</h1>
+                <p class="dashboard-subtitle">Manage your content and track your performance.</p>
+            </div>
+            <a href="{% url 'catalog:media_upload' %}" class="btn-dashboard-action" style="margin-top: 0;">+ Upload Media</a>
+        </div>
+
+        <!-- Analytics Cards -->
+        <div class="creator-stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Uploads</div>
+                <div class="stat-value">{{ total_uploaded }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Published</div>
+                <div class="stat-value terracotta">{{ published_count }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Streams</div>
+                <div class="stat-value cobalt">{{ total_streams }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Earnings</div>
+                <div class="stat-value success">${{ total_earnings }}</div>
+            </div>
+        </div>
+
+        <!-- Media List -->
+        <div class="creator-section">
+            <h2 class="creator-section-title">My Content</h2>
+            {% if my_media %}
+                <div class="media-management-grid">
+                    {% for media in my_media %}
+                    <div class="manage-card">
+                        <div class="manage-card-image">
+                            {% if media.thumbnail %}
+                                <img src="{{ media.thumbnail.url }}" alt="{{ media.title }}">
+                            {% else %}
+                                <div class="media-card-fallback" style="height: 100%; display: flex; align-items: center; justify-content: center;">
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                    </svg>
+                                </div>
+                            {% endif %}
+                            
+                            {% if media.publication_status == 'PUBLISHED' %}
+                                <span class="badge-status-published">Published</span>
+                            {% else %}
+                                <span class="badge-status-draft">Draft</span>
+                            {% endif %}
+                        </div>
+                        <div class="manage-card-content">
+                            <h3 class="manage-card-title">{{ media.title }}</h3>
+                            <p class="manage-card-meta">Type: {{ media.get_media_type_display }}</p>
+                            <p class="manage-card-meta">Premium: {{ media.is_premium|yesno:"Yes,No" }}</p>
+                            
+                            <div class="manage-card-actions">
+                                <a href="{% url 'catalog:media_edit' media.pk %}" class="btn-manage">Edit</a>
+                                <a href="{% url 'catalog:media_delete' media.pk %}" class="btn-manage btn-manage-danger">Delete</a>
+                                {% if media.publication_status == 'PUBLISHED' %}
+                                    <a href="{% url 'catalog:media_detail' media.pk %}" class="btn-manage btn-manage-primary">View</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="history-empty">
+                    <p>You haven't uploaded any media yet.</p>
+                    <a href="{% url 'catalog:media_upload' %}" class="btn-dashboard-action">Upload First Media</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Chart -->
+        <div class="creator-section">
+            <h2 class="creator-section-title">Streams per Media</h2>
+            <div class="chart-wrapper">
+                {% if total_streams > 0 %}
+                    <div style="position: relative; height: 300px; width: 100%;">
+                        <canvas id="streamsChart"></canvas>
+                    </div>
+                {% else %}
+                    <div class="history-empty" style="padding: 2rem;">
+                        <p style="margin-bottom: 0;">No streaming data available yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Royalty History -->
+        <div class="creator-section">
+            <h2 class="creator-section-title">Royalty History</h2>
+            <div class="creator-table-wrapper">
+                {% if royalty_history %}
+                    <table class="creator-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Media</th>
+                                <th>Eligible Streams</th>
+                                <th>Rate</th>
+                                <th>Earnings</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in royalty_history %}
+                            <tr>
+                                <td>{{ record.calculated_at|date:"M d, Y" }}</td>
+                                <td>{{ record.media_asset.title }}</td>
+                                <td>{{ record.streams_counted }}</td>
+                                <td>${{ record.rate_applied }}</td>
+                                <td style="color: #4ade80; font-weight: bold;">${{ record.amount }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="history-empty" style="padding: 2rem;">
+                        <p style="margin-bottom: 0;">No royalty records yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% if total_streams > 0 %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('streamsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ chart_labels|safe }},
+                datasets: [{
+                    label: 'Total Streams',
+                    data: {{ chart_data|safe }},
+                    backgroundColor: 'rgba(26, 79, 219, 0.7)', /* Cobalt Blue matching editorial */
+                    borderColor: 'rgba(26, 79, 219, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0,
+                            color: '#a0aab2'
+                        },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    },
+                    x: {
+                        ticks: { color: '#a0aab2' },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

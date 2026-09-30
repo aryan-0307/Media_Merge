@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Register - MediaMerge{% endblock %}
+{% block content %}
+<section class="section-padding">
+    <div class="container">
+        <div class="auth-card">
+            
+            <div class="auth-header">
+                <h1 class="auth-title">Create Account</h1>
+                <p class="auth-subtitle">Join MediaMerge to start streaming.</p>
+            </div>
+            
+            <form method="post" class="auth-form" novalidate>
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="form-error-summary">
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% for field in form %}
+                    <div class="form-group">
+                        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <small class="form-text">{{ field.help_text|safe }}</small>
+                        {% endif %}
+                        {% if field.errors %}
+                            <div class="form-error">
+                                {% for error in field.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                
+                <button type="submit" class="btn-auth-primary">Create Account</button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Already have an account? <a href="{% url 'accounts:login' %}">Sign In</a></p>
+            </div>
+            
+        </div>
+    </div>
+</section>
+{% endblock %}

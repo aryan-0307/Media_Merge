@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Subscription Plans - MediaMerge{% endblock %}
+{% block content %}
+<section class="plans-section section-padding">
+    <div class="container">
+        <div class="plans-heading-area">
+            <h1 class="plans-title">Choose Your Plan</h1>
+            <p class="plans-subtitle">Unlock premium content with a MediaMerge subscription.</p>
+        </div>
+        
+        <div class="plans-grid">
+            {% for plan in plans %}
+                <article class="plan-card {% if plan.price > 10 %}premium-tier{% endif %}">
+                    <h3 class="plan-name">{{ plan.name }}</h3>
+                    <div class="plan-price-area">
+                        <span class="plan-price">${{ plan.price }}</span>
+                        <span class="plan-duration">/{{ plan.duration_days }} days</span>
+                    </div>
+                    <p class="plan-description">{{ plan.description }}</p>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'subscriptions:subscribe' plan.id %}" class="btn-plan-cta">Select Plan</a>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}" class="btn-plan-secondary">Log in to Subscribe</a>
+                    {% endif %}
+                </article>
+            {% empty %}
+                <p class="empty-state">No subscription plans available right now.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

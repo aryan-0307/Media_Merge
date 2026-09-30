@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}{{ media.title }} - MediaMerge{% endblock %}
+{% block content %}
+<section class="detail-hero-section section-padding">
+    <div class="container">
+        <div class="detail-layout">
+            <div class="detail-poster-col">
+                <div class="detail-poster">
+                    {% if media.thumbnail %}
+                        <img src="{{ media.thumbnail.url }}" alt="{{ media.title }}">
+                    {% else %}
+                        <div class="media-card-fallback">
+                            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                        </div>
+                    {% endif %}
+                    {% if media.is_premium %}
+                        <span class="badge-premium badge-detail">Premium</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="detail-content-col">
+                <h1 class="detail-title">{{ media.title }}</h1>
+                <div class="detail-meta-tags">
+                    <span class="meta-tag meta-category">{{ media.category.name|default:"Uncategorized" }}</span>
+                    {% if media.media_type %}
+                        <span class="meta-tag">{{ media.get_media_type_display }}</span>
+                    {% endif %}
+                    {% if media.release_date %}
+                        <span class="meta-tag">{{ media.release_date|date:"Y" }}</span>
+                    {% endif %}
+                    {% if media.duration %}
+                        <span class="meta-tag">{{ media.duration }}s</span>
+                    {% endif %}
+                </div>
+                
+                <div class="detail-description">
+                    <p>{{ media.description }}</p>
+                </div>
+                
+                <div class="detail-credits">
+                    <p><strong>Creator:</strong> {{ media.creator.username }}</p>
+                    {% if media.language %}
+                        <p><strong>Language:</strong> {{ media.language }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="detail-action-area" id="player-container">
+                    {% if media.is_premium and not has_access %}
+                        <div class="access-warning">
+                            <p class="warning-title">&#11088; Premium Content</p>
+                            <p>You need an active subscription to watch this media.</p>
+                            <a href="{% url 'subscriptions:plans' %}" class="btn-detail-primary" style="margin-top: 1rem;">Subscribe to Watch</a>
+                        </div>
+                    {% elif not user.is_authenticated %}
+                        <div class="access-warning">
+                            <p>Please log in to watch this media.</p>
+                            <a href="{% url 'accounts:login' %}" class="btn-detail-primary" style="margin-top: 1rem;">Log In</a>
+                        </div>
+                    {% else %}
+                        <button id="load-video-btn" class="btn-detail-primary" onclick="loadVideo()">Watch Now</button>
+                        <div id="video-wrapper" class="video-wrapper" style="display: none;">
+                            <video id="media-player" controls>
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                        <p id="error-message" class="error-msg" style="display: none;"></p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if user.is_authenticated and has_access %}
+<script>
+    function loadVideo() {
+        const btn = document.getElementById('load-video-btn');
+        const wrapper = document.getElementById('video-wrapper');
+        const player = document.getElementById('media-player');
+        const errorMsg = document.getElementById('error-message');
+        
+        btn.disabled = true;
+        btn.textContent = "Requesting Secure Access...";
+        
+        fetch("{% url 'catalog:generate_token' media.pk %}")
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Unauthorized or subscription required.");
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.token) {
+                    // Start video
+                    const streamUrl = `/stream/${data.token}/`;
+                    player.src = streamUrl;
+                    
+                    btn.style.display = 'none';
+                    wrapper.style.display = 'block';
+                    player.play();
+                } else {
+                    throw new Error("Invalid token received.");
+                }
+            })
+            .catch(error => {
+                btn.style.display = 'none';
+                errorMsg.style.display = 'block';
+                errorMsg.textContent = error.message;
+            });
+    }
+
+    // Progress tracking
+    let lastProgressUpdate = 0;
+    const player = document.getElementById('media-player');
+    
+    player.addEventListener('timeupdate', function() {
+        const currentTime = Math.floor(player.currentTime);
+        // Only ping server every 10 seconds to avoid spam
+        if (currentTime > 0 && currentTime - lastProgressUpdate >= 10) {
+            lastProgressUpdate = currentTime;
+            
+            const formData = new FormData();
+            formData.append('progress', currentTime);
+            // Fetch requires CSRF token in Django, using a standard meta tag or hidden input
+            // For simplicity, we just inject it directly:
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            
+            fetch("{% url 'catalog:update_progress' media.pk %}", {
+                method: 'POST',
+                body: formData
+            }).catch(e => console.error("Failed to sync progress"));
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Delete {{ media.title }} - MediaMerge{% endblock %}
+{% block content %}
+<div class="container" style="max-width: 500px; margin-top: 4rem;">
+    <div class="card" style="text-align: center;">
+        <h2 style="color: var(--danger);">Confirm Deletion</h2>
+        <p style="margin: 2rem 0;">Are you sure you want to delete <strong>{{ media.title }}</strong>? This action cannot be undone.</p>
+        <form method="post">
+            {% csrf_token %}
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <button type="submit" class="btn btn-primary" style="background-color: var(--danger);">Yes, Delete</button>
+                <a href="{% url 'catalog:creator_dashboard' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

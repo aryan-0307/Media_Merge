@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}My Dashboard - MediaMerge{% endblock %}
+{% block content %}
+<section class="dashboard-section section-padding">
+    <div class="container">
+        
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">My Dashboard</h1>
+            <p class="dashboard-subtitle">Manage your account and view your watch history.</p>
+        </div>
+        
+        <div class="dashboard-grid">
+            
+            <!-- Profile Info -->
+            <div class="dashboard-card profile-info">
+                <h2 class="dashboard-card-title">Profile</h2>
+                <p><strong>Username:</strong> {{ user.username }}</p>
+                <p><strong>Email:</strong> {{ user.email }}</p>
+                <p><strong>Role:</strong> <span class="role-badge">{{ user.get_role_display|default:user.role }}</span></p>
+                <p style="margin-top: 1.5rem; font-size: 0.95rem;">Joined: {{ user.date_joined|date:"M d, Y" }}</p>
+            </div>
+
+            <!-- Subscription Info -->
+            <div class="dashboard-card subscription-info">
+                <h2 class="dashboard-card-title">Subscription</h2>
+                {% if subscription %}
+                    <p class="sub-plan-name">&#11088; {{ subscription.plan.name }} Plan</p>
+                    <p>Status: <span class="sub-status-active">Active</span></p>
+                    <p>Expires on: {{ subscription.end_date|date:"M d, Y" }}</p>
+                {% else %}
+                    <p>You don't have an active premium subscription.</p>
+                    <a href="{% url 'subscriptions:plans' %}" class="btn-dashboard-action">Upgrade Plan</a>
+                {% endif %}
+            </div>
+            
+        </div>
+
+        <!-- Watch History -->
+        <div>
+            <h2 class="history-section-title">Watch History</h2>
+            
+            {% if watch_history %}
+                <div class="history-grid">
+                    {% for history in watch_history %}
+                        <a href="{% url 'catalog:media_detail' history.media_asset.pk %}" class="media-card-link">
+                            <article class="media-card">
+                                <div class="media-card-image">
+                                    {% if history.media_asset.thumbnail %}
+                                        <img src="{{ history.media_asset.thumbnail.url }}" alt="{{ history.media_asset.title }}">
+                                    {% else %}
+                                        <div class="media-card-fallback">
+                                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                            </svg>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="media-card-content">
+                                    <h3 class="media-card-title">{{ history.media_asset.title }}</h3>
+                                    <p class="media-card-meta">
+                                        Watched {{ history.last_watched|timesince }} ago
+                                    </p>
+                                    <p class="media-card-meta" style="color: #1A4FDB; font-weight: 700; margin-top: 0.25rem;">
+                                        Progress: {{ history.progress_seconds }}s
+                                    </p>
+                                </div>
+                            </article>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="history-empty">
+                    <p>You haven't watched any media yet.</p>
+                    <a href="{% url 'catalog:browse' %}" class="btn-dashboard-action">Browse Catalog</a>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard - MediaMerge{% endblock %}
+{% block content %}
+<section class="section-padding">
+    <div class="container">
+
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Admin Dashboard</h1>
+            <p class="dashboard-subtitle">Platform overview, analytics, and royalty management.</p>
+        </div>
+
+        {% if messages %}
+            <div class="admin-messages">
+                {% for message in messages %}
+                    <div class="admin-message {% if message.tags %}{{ message.tags }}{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Platform Statistics -->
+        <div class="admin-stats-grid">
+            
+            <div class="admin-stat-card">
+                <div>
+                    <div class="admin-stat-label">Total Users</div>
+                    <div class="admin-stat-value">{{ total_users }}</div>
+                </div>
+                <div class="admin-stat-subtext cobalt">{{ total_creators }} Creators</div>
+            </div>
+
+            <div class="admin-stat-card">
+                <div>
+                    <div class="admin-stat-label">Total Media</div>
+                    <div class="admin-stat-value">{{ total_media }}</div>
+                </div>
+                <div class="admin-stat-subtext success">{{ published_media }} Published</div>
+            </div>
+
+            <div class="admin-stat-card">
+                <div>
+                    <div class="admin-stat-label">Subscriptions</div>
+                    <div class="admin-stat-value">{{ total_subscriptions }}</div>
+                </div>
+                <div class="admin-stat-subtext success">{{ active_subscriptions }} Active</div>
+            </div>
+
+            <div class="admin-stat-card">
+                <div>
+                    <div class="admin-stat-label">Total Royalties</div>
+                    <div class="admin-stat-value terracotta">${{ total_royalties }}</div>
+                </div>
+                <div class="admin-stat-subtext">Rate: ${{ current_rate }} / stream</div>
+            </div>
+
+            <div class="admin-stat-card highlight">
+                <div>
+                    <div class="admin-stat-label">Streams to Process</div>
+                    <div class="admin-stat-value cobalt">{{ unprocessed_streams }}</div>
+                </div>
+                <form method="post" action="{% url 'royalties:process_royalties' %}" style="margin-top: 1rem;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-dashboard-action" style="width: 100%; margin-top: 0; padding: 0.6rem 1rem;">Run Payouts</button>
+                </form>
+            </div>
+
+        </div>
+
+        <!-- Platform Analytics Chart -->
+        <div class="admin-section">
+            <h2 class="admin-section-title">Platform Activity (Streams per Day)</h2>
+            <div class="chart-wrapper">
+                {% if total_streams > 0 %}
+                    <div style="position: relative; height: 350px; width: 100%;">
+                        <canvas id="platformActivityChart"></canvas>
+                    </div>
+                {% else %}
+                    <div class="history-empty" style="padding: 2rem;">
+                        <p style="margin-bottom: 0;">No streaming data available yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% if total_streams > 0 %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('platformActivityChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ chart_labels|safe }},
+                datasets: [{
+                    label: 'Streams',
+                    data: {{ chart_data|safe }},
+                    backgroundColor: 'rgba(226, 88, 34, 0.2)', /* Terracotta */
+                    borderColor: 'rgba(226, 88, 34, 1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3,
+                    pointBackgroundColor: 'rgba(226, 88, 34, 1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0,
+                            color: '#a0aab2'
+                        },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    },
+                    x: {
+                        ticks: { color: '#a0aab2' },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}
