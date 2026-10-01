@@ -5,7 +5,7 @@ from datetime import timedelta
 from .models import SubscriptionPlan, Subscription
 
 def plan_list_view(request):
-    plans = SubscriptionPlan.objects.filter(is_active=True)
+    plans = SubscriptionPlan.objects.filter(is_active=True).order_by('price')
     return render(request, 'subscriptions/plan_list.html', {'plans': plans})
 
 @login_required

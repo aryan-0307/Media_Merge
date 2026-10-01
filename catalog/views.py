@@ -205,3 +205,66 @@ def media_delete_view(request, pk):
         media.delete()
         return redirect('catalog:creator_dashboard')
     return render(request, 'catalog/media_confirm_delete.html', {'media': media})
+
+from django.core.paginator import Paginator
+from .models import MovieDatasetRecord
+
+def movie_database_list_view(request):
+    queryset = MovieDatasetRecord.objects.all()
+    
+    # 1. Search
+    query = request.GET.get('q', '').strip()
+    if query:
+        queryset = queryset.filter(title__icontains=query)
+        
+    # 2. Filters
+    language = request.GET.get('language', '').strip()
+    if language:
+        queryset = queryset.filter(language__iexact=language)
+        
+    genre = request.GET.get('genre', '').strip()
+    if genre:
+        queryset = queryset.filter(genre__icontains=genre)
+        
+    year = request.GET.get('year', '').strip()
+    if year.isdigit():
+        queryset = queryset.filter(release_year=int(year))
+        
+    # 3. Sorting
+    sort = request.GET.get('sort', '')
+    if sort == 'rating_desc':
+        queryset = queryset.order_by('-rating', 'id')
+    elif sort == 'rating_asc':
+        queryset = queryset.order_by('rating', 'id')
+    elif sort == 'year_desc':
+        queryset = queryset.order_by('-release_year', 'id')
+    elif sort == 'year_asc':
+        queryset = queryset.order_by('release_year', 'id')
+    elif sort == 'votes':
+        queryset = queryset.order_by('-vote_count', 'id')
+    else:
+        # Default sort
+        queryset = queryset.order_by('title', 'id')
+        
+    # Performance: use only necessary fields
+    queryset = queryset.only('id', 'title', 'release_year', 'language', 'genre', 'runtime_minutes', 'rating', 'vote_count')
+    
+    # Pagination
+    paginator = Paginator(queryset, 24)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'q': query,
+        'language': language,
+        'genre': genre,
+        'year': year,
+        'sort': sort
+    }
+    return render(request, 'catalog/movie_database_list.html', context)
+
+def movie_database_detail_view(request, pk):
+    record = get_object_or_404(MovieDatasetRecord, pk=pk)
+    return render(request, 'catalog/movie_database_detail.html', {'record': record})
+

@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Movie Database - MediaMerge{% endblock %}
+{% block content %}
+<section class="browse-section section-padding">
+    <div class="container">
+        
+        <div class="browse-header">
+            <h1 class="browse-title">Movie Database</h1>
+            <p class="browse-subtitle">Browse a catalogue of 50,000 real-world movie metadata records.</p>
+        </div>
+
+        <!-- Search & Filter -->
+        <div class="browse-controls">
+            <form method="get" class="browse-form" style="display:flex; flex-wrap:wrap; gap:1rem;">
+                <input type="text" name="q" value="{{ q }}" placeholder="Search titles..." class="browse-search-input" aria-label="Search titles" style="flex:1;">
+                
+                <input type="text" name="language" value="{{ language }}" placeholder="Language (e.g. hindi)" class="browse-search-input" style="max-width: 150px;">
+                <input type="text" name="genre" value="{{ genre }}" placeholder="Genre (e.g. comedy)" class="browse-search-input" style="max-width: 150px;">
+                <input type="number" name="year" value="{{ year }}" placeholder="Year" class="browse-search-input" style="max-width: 100px;">
+                
+                <select name="sort" class="browse-select" aria-label="Sort by">
+                    <option value="">Sort by: Default</option>
+                    <option value="year_desc" {% if sort == 'year_desc' %}selected{% endif %}>Year: Newest → Oldest</option>
+                    <option value="year_asc" {% if sort == 'year_asc' %}selected{% endif %}>Year: Oldest → Newest</option>
+                    <option value="rating_desc" {% if sort == 'rating_desc' %}selected{% endif %}>Rating: High → Low</option>
+                    <option value="rating_asc" {% if sort == 'rating_asc' %}selected{% endif %}>Rating: Low → High</option>
+                    <option value="votes" {% if sort == 'votes' %}selected{% endif %}>Most Votes</option>
+                </select>
+                <button type="submit" class="btn-browse-submit">Filter</button>
+            </form>
+        </div>
+
+        <!-- Meta Grid -->
+        <div class="browse-grid" style="grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));">
+            {% for record in page_obj %}
+                <a href="{% url 'catalog:movie_database_detail' record.pk %}" class="media-card-link" style="text-decoration:none;">
+                    <article class="media-card" style="padding: 1.5rem; background: var(--bg-surface); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.05);">
+                        <div class="media-card-content" style="padding:0;">
+                            <span class="badge-metadata" style="position:static; display:inline-block; margin-bottom:1rem; font-size:0.75rem;">Metadata Record</span>
+                            <h3 class="media-card-title" style="font-size: 1.25rem; margin-bottom: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ record.title }}</h3>
+                            <p class="media-card-meta" style="color: var(--text-secondary); margin-bottom:0.2rem; font-size:0.9rem;">
+                                {{ record.release_year|default:"N/A" }} &bull; {{ record.language|title|default:"Unknown" }}
+                            </p>
+                            <p class="media-card-meta" style="color: var(--text-secondary); margin-bottom:0.2rem; font-size:0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                {{ record.genre|default:"-" }}
+                            </p>
+                            <div style="display:flex; justify-content:space-between; margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.5rem;">
+                                <span style="font-weight:600; color:var(--text-terracotta);">⭐ {{ record.rating|default:"-" }}</span>
+                                <span style="color:var(--text-secondary); font-size:0.85rem;">{{ record.runtime_minutes|default:"-" }} min</span>
+                            </div>
+                        </div>
+                    </article>
+                </a>
+            {% empty %}
+                <div class="browse-empty" style="grid-column: 1 / -1;">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1rem; color: var(--text-secondary); opacity: 0.5;">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <h3>No Records Found</h3>
+                    <p>Try adjusting your search or filters.</p>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div style="display:flex; justify-content:center; align-items:center; gap: 1rem; margin-top: 3rem;">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&q={{ q|urlencode }}&language={{ language|urlencode }}&genre={{ genre|urlencode }}&year={{ year|urlencode }}&sort={{ sort|urlencode }}" class="btn-secondary" style="padding: 0.5rem 1rem;">&laquo; Prev</a>
+            {% else %}
+                <span class="btn-secondary" style="padding: 0.5rem 1rem; opacity:0.5; pointer-events:none;">&laquo; Prev</span>
+            {% endif %}
+            
+            <span style="font-size: 1rem; color: var(--text-primary);">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+            
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&q={{ q|urlencode }}&language={{ language|urlencode }}&genre={{ genre|urlencode }}&year={{ year|urlencode }}&sort={{ sort|urlencode }}" class="btn-secondary" style="padding: 0.5rem 1rem;">Next &raquo;</a>
+            {% else %}
+                <span class="btn-secondary" style="padding: 0.5rem 1rem; opacity:0.5; pointer-events:none;">Next &raquo;</span>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+    </div>
+</section>
+{% endblock %}

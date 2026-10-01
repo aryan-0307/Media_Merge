@@ -16,4 +16,9 @@ urlpatterns = [
     path('creator/upload/', views.media_upload_view, name='media_upload'),
     path('creator/<int:pk>/edit/', views.media_edit_view, name='media_edit'),
     path('creator/<int:pk>/delete/', views.media_delete_view, name='media_delete'),
+    
+    # Movie Database
+    path('movie-database/', views.movie_database_list_view, name='movie_database_list'),
+    path('movie-database/<int:pk>/', views.movie_database_detail_view, name='movie_database_detail'),
 ]
+

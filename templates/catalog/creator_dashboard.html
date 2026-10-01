@@ -28,7 +28,7 @@
             </div>
             <div class="stat-card">
                 <div class="stat-label">Total Earnings</div>
-                <div class="stat-value success">${{ total_earnings }}</div>
+                <div class="stat-value success">₹{{ total_earnings }}</div>
             </div>
         </div>
 
@@ -117,8 +117,8 @@
                                 <td>{{ record.calculated_at|date:"M d, Y" }}</td>
                                 <td>{{ record.media_asset.title }}</td>
                                 <td>{{ record.streams_counted }}</td>
-                                <td>${{ record.rate_applied }}</td>
-                                <td style="color: #4ade80; font-weight: bold;">${{ record.amount }}</td>
+                                <td>₹{{ record.rate_applied }}</td>
+                                <td style="color: #4ade80; font-weight: bold;">₹{{ record.amount }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

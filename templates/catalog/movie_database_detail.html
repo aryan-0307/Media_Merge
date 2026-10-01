@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ record.title }} - Movie Database - MediaMerge{% endblock %}
+{% block content %}
+<section class="detail-hero-section section-padding">
+    <div class="container">
+        <div class="detail-layout">
+            <div class="detail-poster-col">
+                <div class="detail-poster">
+                    <div class="media-card-fallback" style="position: relative; display:flex; flex-direction:column; justify-content:center; align-items:center; height: 100%; width: 100%; border-radius: var(--radius-lg); overflow: hidden;">
+                        <img src="{% static 'images/metadata_placeholder.jpg' %}" alt="Metadata Only" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;">
+                        <div style="position: absolute; inset: 0; background-color: rgba(0, 0, 0, 0.4); z-index: 1;"></div>
+                        <p style="position: relative; z-index: 2; margin: 0; color: #fff; font-size: 1rem; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">Metadata Only</p>
+                    </div>
+                </div>
+            </div>
+            <div class="detail-content-col">
+                <div style="margin-bottom: 1.5rem;">
+                    <span class="badge-metadata" style="position:static; display:inline-block; font-size:0.8rem;">Metadata Record</span>
+                </div>
+                
+                <h1 class="detail-title">{{ record.title }}</h1>
+                
+                <div class="detail-meta-tags">
+                    <span class="meta-tag meta-category">{{ record.media_type }}</span>
+                    {% if record.release_year %}
+                        <span class="meta-tag">{{ record.release_year }}</span>
+                    {% endif %}
+                    {% if record.genre %}
+                        <span class="meta-tag">{{ record.genre }}</span>
+                    {% endif %}
+                    {% if record.runtime_minutes %}
+                        <span class="meta-tag">{{ record.runtime_minutes }} min</span>
+                    {% endif %}
+                    {% if record.rating %}
+                        <span class="meta-tag" style="background-color: var(--text-terracotta); color: white;">⭐ {{ record.rating }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="detail-description" style="margin-top: 2rem;">
+                    <h3>Synopsis / Description</h3>
+                    <p style="color: var(--text-secondary);">
+                        {% if record.description %}
+                            {{ record.description }}
+                        {% else %}
+                            No description available.
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <div class="detail-credits" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem;">
+                    <h3>Additional Information</h3>
+                    <ul style="list-style: none; padding: 0; color: var(--text-secondary); margin-top: 1rem;">
+                        <li style="margin-bottom: 0.5rem;"><strong>Source ID:</strong> {{ record.source_id|default:"N/A" }}</li>
+                        <li style="margin-bottom: 0.5rem;"><strong>Original Title:</strong> {{ record.original_title|default:"N/A" }}</li>
+                        <li style="margin-bottom: 0.5rem;"><strong>Language:</strong> {{ record.language|title|default:"N/A" }}</li>
+                        <li style="margin-bottom: 0.5rem;"><strong>Vote Count:</strong> {{ record.vote_count|default:"0" }}</li>
+                    </ul>
+                </div>
+                
+                <div class="detail-action-area" style="margin-top: 3rem; background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: var(--radius-md); border-left: 4px solid var(--text-terracotta);">
+                    <p style="margin: 0; font-weight: 500;">
+                        <strong>Note:</strong> This record belongs to the movie metadata dataset and is not directly streamable through MediaMerge.
+                    </p>
+                </div>
+                
+                <div style="margin-top: 2rem;">
+                    <a href="{% url 'catalog:movie_database_list' %}" class="btn-secondary" style="padding: 0.8rem 1.5rem;">&larr; Back to Catalogue</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

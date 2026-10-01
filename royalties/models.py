@@ -3,7 +3,7 @@ from django.conf import settings
 from catalog.models import MediaAsset
 
 class RoyaltyRate(models.Model):
-    rate_per_stream = models.DecimalField(max_digits=10, decimal_places=4, default=0.0100)
+    rate_per_stream = models.DecimalField(max_digits=10, decimal_places=4, default=0.5000)
     effective_from = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
 
@@ -14,7 +14,7 @@ class RoyaltyRate(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"${self.rate_per_stream} per stream (Active: {self.is_active})"
+        return f"₹{self.rate_per_stream} per stream (Active: {self.is_active})"
 
 class RoyaltyRecord(models.Model):
     creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='royalty_records')
@@ -25,4 +25,4 @@ class RoyaltyRecord(models.Model):
     calculated_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.creator.username} - {self.media_asset.title}: ${self.amount}"
+        return f"{self.creator.username} - {self.media_asset.title}: ₹{self.amount}"

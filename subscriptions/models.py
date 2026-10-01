@@ -10,7 +10,7 @@ class SubscriptionPlan(models.Model):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.name} - ${self.price} ({self.duration_days} days)"
+        return f"{self.name} - ₹{self.price} ({self.duration_days} days)"
 
 class Subscription(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='subscriptions')

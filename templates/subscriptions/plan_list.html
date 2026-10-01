@@ -10,10 +10,10 @@
         
         <div class="plans-grid">
             {% for plan in plans %}
-                <article class="plan-card {% if plan.price > 10 %}premium-tier{% endif %}">
+                <article class="plan-card {% if plan.price >= 500 %}premium-tier{% endif %}">
                     <h3 class="plan-name">{{ plan.name }}</h3>
                     <div class="plan-price-area">
-                        <span class="plan-price">${{ plan.price }}</span>
+                        <span class="plan-price">₹{{ plan.price }}</span>
                         <span class="plan-duration">/{{ plan.duration_days }} days</span>
                     </div>
                     <p class="plan-description">{{ plan.description }}</p>

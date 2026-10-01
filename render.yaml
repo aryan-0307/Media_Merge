@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: mediamerge
+    env: python
+    buildCommand: "bash build.sh"
+    startCommand: "gunicorn mediamerge_project.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: DB_HOST
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_PORT
+        value: "3306"

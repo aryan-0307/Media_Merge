@@ -11,7 +11,7 @@
     
     <!-- Base CSS -->
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/base.css' %}?v=2.0">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}?v=2.4">
     {% block extra_css %}{% endblock %}
 </head>
 <body class="{% if request.resolver_match.url_name == 'home' and request.resolver_match.namespace == 'catalog' %}home-page{% endif %}">
@@ -21,10 +21,12 @@
         <ul class="navbar-nav">
             <li><a href="{% url 'catalog:home' %}" class="nav-link">Home</a></li>
             <li><a href="{% url 'catalog:browse' %}" class="nav-link">Browse</a></li>
+            <li><a href="{% url 'catalog:movie_database_list' %}" class="nav-link">Movie Database</a></li>
             {% if not user.is_authenticated or user.role != 'CREATOR' %}
             <li><a href="{% url 'subscriptions:plans' %}" class="nav-link">Plans</a></li>
             {% endif %}
         </ul>
+
         <div class="navbar-actions" style="display:flex; gap: 1.5rem; align-items:center;">
             {% if user.is_authenticated %}
                 {% if user.is_superuser or user.role == 'ADMIN' %}
@@ -65,6 +67,7 @@
                     <ul class="footer-links">
                         <li><a href="{% url 'catalog:home' %}">Home</a></li>
                         <li><a href="{% url 'catalog:browse' %}">Browse</a></li>
+                        <li><a href="{% url 'catalog:movie_database_list' %}">Movie Database</a></li>
                         {% if not user.is_authenticated or user.role != 'CREATOR' %}
                         <li><a href="{% url 'subscriptions:plans' %}">Plans</a></li>
                         {% endif %}
@@ -80,6 +83,7 @@
 
     <!-- Base JS -->
     <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/custom_cursor.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

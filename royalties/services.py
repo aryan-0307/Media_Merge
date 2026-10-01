@@ -17,14 +17,14 @@ def calculate_royalties():
             # If no rate exists, create a default one
             rate_obj = RoyaltyRate.objects.create()
             
-        rate = rate_obj.rate_per_stream
+        rate = Decimal(str(rate_obj.rate_per_stream))
         
         # Get unprocessed streams grouped by media asset
-        unprocessed_streams = StreamingRecord.objects.filter(
+        unprocessed_streams = list(StreamingRecord.objects.filter(
             royalty_processed=False
         ).values('media_asset_id').annotate(
             stream_count=Count('id')
-        )
+        ))
         
         total_payout = Decimal('0.00')
         records_created = 0

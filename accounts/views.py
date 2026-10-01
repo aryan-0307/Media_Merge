@@ -18,15 +18,25 @@ def register_view(request):
 def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(data=request.POST)
+        for field_name, field in form.fields.items():
+            field.widget.attrs['class'] = 'form-control'
+            if field_name == 'password':
+                field.widget.attrs['autocomplete'] = 'new-password'
+            else:
+                field.widget.attrs['autocomplete'] = 'off'
         if form.is_valid():
             user = form.get_user()
             login(request, user)
             return redirect('catalog:home')
     else:
         form = AuthenticationForm()
-        # Add CSS classes
-        for field in form.fields.values():
+        # Add CSS classes and disable autocomplete
+        for field_name, field in form.fields.items():
             field.widget.attrs['class'] = 'form-control'
+            if field_name == 'password':
+                field.widget.attrs['autocomplete'] = 'new-password'
+            else:
+                field.widget.attrs['autocomplete'] = 'off'
     return render(request, 'accounts/login.html', {'form': form})
 
 def logout_view(request):

@@ -70,3 +70,28 @@ class AccessKey(models.Model):
 
     def __str__(self):
         return f"Token for {self.user.username} - {self.media_asset.title} (Valid: {self.is_valid()})"
+
+class MovieDatasetRecord(models.Model):
+    """
+    Metadata dataset imported from the Indian Movies 50k Dataset.
+    This model represents pure metadata separate from streamable MediaAsset.
+    """
+    source_id = models.CharField(max_length=50, blank=True)
+    title = models.CharField(max_length=500, db_index=True)
+    original_title = models.CharField(max_length=500, blank=True)
+    media_type = models.CharField(max_length=50)
+    release_year = models.IntegerField(null=True, blank=True, db_index=True)
+    runtime_minutes = models.IntegerField(null=True, blank=True)
+    language = models.CharField(max_length=100, blank=True, db_index=True)
+    genre = models.CharField(max_length=255, blank=True, db_index=True)
+    rating = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
+    vote_count = models.IntegerField(null=True, blank=True)
+    description = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = "Movie Dataset Record"
+        verbose_name_plural = "Movie Dataset Records"
+
+    def __str__(self):
+        return f"{self.title} ({self.release_year})"
+

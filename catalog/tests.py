@@ -172,3 +172,95 @@ class CatalogTests(TransactionTestCase):
         url = reverse('catalog:media_detail', args=[self.media_draft.pk])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+
+from .models import MovieDatasetRecord
+
+class MovieDatabaseTests(TransactionTestCase):
+    def setUp(self):
+        self.client = Client()
+        # Create a small test dataset instead of 50k
+        for i in range(1, 31):
+            MovieDatasetRecord.objects.create(
+                source_id=f"test_id_{i}",
+                title=f"Test Movie {i} money",
+                original_title=f"Original Test Movie {i}",
+                media_type="Movie",
+                release_year=2000 + (i % 5),  # 2000, 2001, 2002, 2003, 2004
+                runtime_minutes=120,
+                language="hindi" if i % 2 == 0 else "tamil",
+                genre="Action" if i % 3 == 0 else "Comedy",
+                rating=8.0 + (i % 10) / 10.0,
+                vote_count=100 * i,
+                description="Test description"
+            )
+
+    def test_movie_database_list_status(self):
+        url = reverse('catalog:movie_database_list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Test Movie")
+
+    def test_movie_database_pagination(self):
+        url = reverse('catalog:movie_database_list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['page_obj']), 24)
+        
+        response_page2 = self.client.get(url + "?page=2")
+        self.assertEqual(response_page2.status_code, 200)
+        self.assertEqual(len(response_page2.context['page_obj']), 6) # 30 total, 24 on p1, 6 on p2
+
+    def test_movie_database_search(self):
+        url = reverse('catalog:movie_database_list')
+        response = self.client.get(url, {'q': 'Test Movie 1'})
+        self.assertEqual(response.status_code, 200)
+        # 1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19
+        self.assertTrue(len(response.context['page_obj']) > 0)
+        self.assertContains(response, "Test Movie 1")
+
+    def test_movie_database_language_filter(self):
+        url = reverse('catalog:movie_database_list')
+        response = self.client.get(url, {'language': 'hindi'})
+        self.assertEqual(response.status_code, 200)
+        # Should only contain hindi movies (evens)
+        for record in response.context['page_obj']:
+            self.assertEqual(record.language, 'hindi')
+
+    def test_movie_database_genre_filter(self):
+        url = reverse('catalog:movie_database_list')
+        response = self.client.get(url, {'genre': 'Action'})
+        self.assertEqual(response.status_code, 200)
+        for record in response.context['page_obj']:
+            self.assertEqual(record.genre, 'Action')
+
+    def test_movie_database_year_filter(self):
+        url = reverse('catalog:movie_database_list')
+        response = self.client.get(url, {'year': '2001'})
+        self.assertEqual(response.status_code, 200)
+        for record in response.context['page_obj']:
+            self.assertEqual(record.release_year, 2001)
+
+    def test_movie_database_sorting(self):
+        url = reverse('catalog:movie_database_list')
+        response = self.client.get(url, {'sort': 'rating_desc'})
+        self.assertEqual(response.status_code, 200)
+        records = list(response.context['page_obj'])
+        # Check if sorted by rating desc
+        for i in range(len(records) - 1):
+            if records[i].rating and records[i+1].rating:
+                self.assertTrue(records[i].rating >= records[i+1].rating)
+
+    def test_movie_database_detail(self):
+        movie = MovieDatasetRecord.objects.first()
+        url = reverse('catalog:movie_database_detail', args=[movie.pk])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, movie.title)
+        self.assertContains(response, "Metadata Record")
+        self.assertContains(response, "not directly streamable")
+
+    def test_invalid_movie_detail(self):
+        url = reverse('catalog:movie_database_detail', args=[999999])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
