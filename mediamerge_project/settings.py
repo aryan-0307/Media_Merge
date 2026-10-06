@@ -90,6 +90,24 @@ DATABASES = {
     }
 }
 
+# Configure SSL for Aiven MySQL in production
+if os.getenv('DB_USE_SSL', 'False').lower() in ('true', '1', 't'):
+    ssl_options = {}
+    
+    # Optional: SSL mode (e.g., 'REQUIRED', 'VERIFY_CA')
+    if os.getenv('DB_SSL_MODE'):
+        ssl_options['ssl_mode'] = os.getenv('DB_SSL_MODE')
+        
+    # Optional: Path to CA certificate (Render-compatible via env var)
+    if os.getenv('DB_SSL_CA'):
+        ssl_options['ca'] = os.getenv('DB_SSL_CA')
+        
+    if not ssl_options:
+        # Fallback to require SSL if DB_USE_SSL is true but no other options provided
+        ssl_options = {'ssl_mode': 'REQUIRED'}
+        
+    DATABASES['default']['OPTIONS']['ssl'] = ssl_options
+
 # Use sqlite fallback if specified (for local dev if MySQL isn't ready)
 if os.getenv('USE_SQLITE', 'False').lower() in ('true', '1', 't'):
     DATABASES['default'] = {

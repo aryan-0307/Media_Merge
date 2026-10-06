@@ -19,6 +19,7 @@
 - MySQL is the chosen production/primary database based on requirements.
 - SQLite is maintained as a fallback in `.env` (`USE_SQLITE=True`).
 - Final verification identified MySQL socket connections unavailable locally (`10061`). Project correctly documented as `UNKNOWN — needs verification` strictly adhering to honesty guidelines.
+- Configured Django to support SSL requirements for Aiven Free MySQL. Config allows providing SSL certificate path or setting `ssl_mode=REQUIRED` safely without hardcoding secrets, relying purely on environment variables (`DB_USE_SSL`, `DB_SSL_MODE`, `DB_SSL_CA`).
 
 ## Frontend UI
 - Pure HTML5, CSS3, and Vanilla JavaScript.
